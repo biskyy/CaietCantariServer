@@ -1,9 +1,11 @@
 require("dotenv").config();
 const express = require("express");
+const jwt = require("jsonwebtoken");
 const mongoose = require("mongoose");
-const app = express();
 
+const app = express();
 const Song = require("./models/songModel");
+const privateKey = process.env.PRIVATE_KEY;
 
 const sortPipeline = [
   {
@@ -29,6 +31,20 @@ const sortPipeline = [
   },
 ];
 
+const authenticate = (req, res, next) => {
+  const token = req.headers.authorization;
+
+  if (!token) return res.status(401).json({ message: "Unathorized" });
+
+  jwt.verify(token, privateKey, (err, decoded) => {
+    if (err) return res.status(401).json({ message: "Invalid token" });
+
+    req.user = decoded;
+    next();
+  });
+};
+
+app.use(authenticate);
 app.use(express.json());
 
 mongoose
@@ -59,7 +75,7 @@ app.get("/song/:bookID/:id", async (req, res) => {
   }
 });
 
-app.post("/song", async (req, res) => {
+app.post("/song", authenticate, async (req, res) => {
   try {
     await Song.create(req.body);
     try {
@@ -73,7 +89,7 @@ app.post("/song", async (req, res) => {
   }
 });
 
-app.put("/song/:bookID/:id", async (req, res) => {
+app.put("/song/:bookID/:id", authenticate, async (req, res) => {
   try {
     const { bookID, id } = req.params;
     const song = await Song.findOneAndReplace(
