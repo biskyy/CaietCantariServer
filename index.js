@@ -44,7 +44,6 @@ const authenticate = (req, res, next) => {
   });
 };
 
-app.use(authenticate);
 app.use(express.json());
 
 mongoose
