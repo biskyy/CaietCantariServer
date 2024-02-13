@@ -9,6 +9,8 @@
   "author": "biskyy",
   "license": "ISC",
   "dependencies": {
-    "express": "^4.18.2"
+    "dotenv": "^16.4.3",
+    "express": "^4.18.2",
+    "mongoose": "^8.1.1"
   }
 }
