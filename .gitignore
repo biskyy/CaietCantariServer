@@ -1,4 +1,6 @@
 node_modules
 .env
 temp.txt
-user.js
+*.pem
+*.code-workspace
+json-work/
