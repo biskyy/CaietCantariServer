@@ -1,3 +1,4 @@
+const { number } = require("joi");
 const mongoose = require("mongoose");
 
 const songSchema = mongoose.Schema(
@@ -18,6 +19,9 @@ const songSchema = mongoose.Schema(
       type: String,
       required: true,
     },
+    searchable_title: String,
+    searchable_content: String,
+    index: Number,
     author: String,
     composer: String,
     original_title: String,
