@@ -56,7 +56,6 @@ router.get("/", async (req, res) => {
     const { book_id, id } = req.body;
     if (book_id && id) {
       const song = await Song.findOne({ book_id, id }).exec();
-      console.log("hi");
       return res.status(200).json(song);
     }
     const songs = await Song.find({});
