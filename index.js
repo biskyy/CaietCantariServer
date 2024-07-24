@@ -12,6 +12,7 @@ const app = express();
 
 // https://awstip.com/deploying-an-express-js-mongodb-application-on-aws-lambda-with-serverless-framework-289c39891a3f
 // forever thankfull mr Afeef Razick
+
 app.use(async (req, res, next) => {
   if (mongoose.connection.readyState === 0) {
     await mongoose
