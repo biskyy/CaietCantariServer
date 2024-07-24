@@ -3,6 +3,7 @@ const router = express.Router();
 
 const Report = require("../models/reportModel");
 const reportValidationSchema = require("../validation/reportValidation");
+const authenticate = require("../middleware/authenticate");
 
 router.get("/", async (req, res) => {
   try {
@@ -29,7 +30,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/", async (req, res) => {
+router.delete("/", authenticate, async (req, res) => {
   try {
     const { _id } = req.body;
     await Report.deleteOne({ _id });
