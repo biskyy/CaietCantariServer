@@ -5,5 +5,4 @@ temp.txt
 *.code-workspace
 json-work/
 .serverless
-serverless.yml
 *.zip

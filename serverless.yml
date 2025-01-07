@@ -1,0 +1,21 @@
+service: caiet-de-cantari-api
+
+plugins:
+  - serverless-offline
+
+custom:
+  serverless-offline:
+    host: "0.0.0.0"
+
+provider:
+  name: aws
+  runtime: nodejs20.x
+  stage: caiet-de-cantari
+  region: eu-central-1
+
+functions:
+  app:
+    handler: index.handler
+    events:
+      - http: ANY /
+      - http: "ANY /{proxy+}"
