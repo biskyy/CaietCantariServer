@@ -3,7 +3,7 @@ name: Zip and Upload to AWS Lambda
 on:
   push:
     branches:
-      - master # Change this to your desired branch
+      - main # Change this to your desired branch
 
 jobs:
   build:
