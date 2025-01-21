@@ -1,4 +1,4 @@
-const Joi = require("joi");
+import Joi from "joi";
 
 const songSchema = Joi.object({
   id: Joi.number().required(),
@@ -15,4 +15,4 @@ const songSchema = Joi.object({
   references: Joi.string(),
 });
 
-module.exports = songSchema;
+export default songSchema;

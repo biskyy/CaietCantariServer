@@ -1,11 +1,12 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const Report = require("../models/reportModel");
-const reportValidationSchema = require("../validation/reportValidation");
-const authenticate = require("../middleware/authenticate");
+import reportValidationSchema from "../validation/reportValidation.js";
+import authenticate from "../middleware/authenticate.js";
+import rateLimitByIp from "../middleware/limiter.js";
+import Report from "../models/reportModel.js";
 
-router.get("/", async (req, res) => {
+router.get("/", rateLimitByIp, async (req, res) => {
   try {
     const reports = await Report.find({});
     res.status(200).json(reports);
@@ -14,7 +15,7 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", async (req, res) => {
+router.post("/", rateLimitByIp(1, 20000), async (req, res) => {
   try {
     await reportValidationSchema.validateAsync(req.body);
   } catch (validationError) {
@@ -30,7 +31,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.delete("/", authenticate, async (req, res) => {
+router.delete("/", authenticate, rateLimitByIp, async (req, res) => {
   try {
     const { _id } = req.body;
     await Report.deleteOne({ _id });
@@ -40,4 +41,4 @@ router.delete("/", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

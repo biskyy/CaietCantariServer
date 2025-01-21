@@ -1,8 +1,8 @@
-const Joi = require("joi");
+import Joi from "joi";
 
-const songSchema = Joi.object({
+const reportSchema = Joi.object({
   songIndex: Joi.number().required(),
   additionalDetails: Joi.string().allow(""),
 });
 
-module.exports = songSchema;
+export default reportSchema;

@@ -1,14 +1,16 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
-const Joi = require("joi");
 
-const bcrypt = require("bcryptjs");
-const jwt = require("jsonwebtoken");
+import Joi from "joi";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import rateLimitByIp from "../middleware/limiter.js";
+
 const adminUsername = process.env.ADMIN_USERNAME;
 const adminPassword = process.env.ADMIN_PASSWORD;
 const privateKey = process.env.PRIVATE_KEY;
 
-router.post("/", async (req, res) => {
+router.post("/", rateLimitByIp(3, 10000), async (req, res) => {
   try {
     await Joi.object({
       username: Joi.string().required(),
@@ -28,7 +30,7 @@ router.post("/", async (req, res) => {
     else {
       const token = jwt.sign(
         { username: adminUsername, password: adminPassword },
-        privateKey
+        privateKey,
       );
 
       res.status(200).json({ message: "Logged in", token });
@@ -39,4 +41,4 @@ router.post("/", async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

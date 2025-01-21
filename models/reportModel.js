@@ -1,13 +1,12 @@
-const mongoose = require("mongoose");
+import mongoose from "mongoose";
 
 const reportSchema = mongoose.Schema(
   {
     songIndex: Number,
     additionalDetails: String,
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 const Report = mongoose.model("Report", reportSchema);
-
-module.exports = Report;
+export default Report;

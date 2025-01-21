@@ -1,4 +1,4 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 const privateKey = process.env.PRIVATE_KEY;
 
 const authenticate = (req, res, next) => {
@@ -14,4 +14,4 @@ const authenticate = (req, res, next) => {
   });
 };
 
-module.exports = authenticate;
+export default authenticate;

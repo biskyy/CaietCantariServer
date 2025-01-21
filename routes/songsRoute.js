@@ -1,9 +1,11 @@
-const express = require("express");
+import express from "express";
 const router = express.Router();
 
-const authenticate = require("../middleware/authenticate");
-const Song = require("../models/songModel");
-const songValidationSchema = require("../validation/songValidation");
+import authenticate from "../middleware/authenticate.js";
+import rateLimitByIp from "../middleware/limiter.js";
+
+import songValidationSchema from "../validation/songValidation.js";
+import Song from "../models/songModel.js";
 
 const sortPipeline = [
   {
@@ -51,7 +53,7 @@ const formatSongContent = (songContent) => {
     .trim();
 };
 
-router.get("/", async (req, res) => {
+router.get("/", rateLimitByIp(2, 30000), async (req, res) => {
   try {
     const { book_id, id } = req.body;
     if (book_id && id) {
@@ -65,7 +67,8 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", authenticate, async (req, res) => {
+router.post("/", authenticate, rateLimitByIp, async (req, res) => {
+  // i think i should validate the req.body before
   try {
     await Song.create(req.body);
     await sortDatabase();
@@ -75,7 +78,7 @@ router.post("/", authenticate, async (req, res) => {
   }
 });
 
-router.put("/", authenticate, async (req, res) => {
+router.put("/", authenticate, rateLimitByIp, async (req, res) => {
   try {
     await songValidationSchema.validateAsync(req.body);
   } catch (validationError) {
@@ -90,7 +93,7 @@ router.put("/", authenticate, async (req, res) => {
 
     const replacedSong = await Song.findOneAndReplace(
       { book_id, id },
-      req.body
+      req.body,
     );
 
     if (!replacedSong)
@@ -106,4 +109,4 @@ router.put("/", authenticate, async (req, res) => {
   }
 });
 
-module.exports = router;
+export default router;

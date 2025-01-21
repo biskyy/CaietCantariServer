@@ -1,12 +1,14 @@
-require("dotenv").config();
-const express = require("express");
-const serverless = require("serverless-http");
-const cors = require("cors");
-const mongoose = require("mongoose");
+import dotenv from "dotenv";
+dotenv.config();
+import express from "express";
+import serverless from "serverless-http";
+import cors from "cors";
+import mongoose from "mongoose";
+import compression from "compression";
 
-const songsRoute = require("./routes/songsRoute");
-const authRoute = require("./routes/authRoute");
-const reportsRoute = require("./routes/reportsRoute");
+import songsRoute from "./routes/songsRoute.js";
+import authRoute from "./routes/authRoute.js";
+import reportsRoute from "./routes/reportsRoute.js";
 
 const app = express();
 
@@ -14,6 +16,7 @@ const app = express();
 // forever thankfull mr Afeef Razick
 
 app.use(async (req, res, next) => {
+  //const client
   if (mongoose.connection.readyState === 0) {
     await mongoose
       .connect(process.env.MONGO_URI)
@@ -25,10 +28,10 @@ app.use(async (req, res, next) => {
       });
   } else {
     console.log(
-      "Connection already established, reusing the existing connection"
+      "Connection already established, reusing the existing connection",
     );
   }
-  next();
+  return next();
 });
 
 app.use(express.json());
@@ -39,14 +42,15 @@ app.use((err, req, res, next) => {
   next();
 });
 app.use(cors());
+app.use(compression()); // doesnt work
 
 app.use("/songs", songsRoute);
 app.use("/login", authRoute);
 app.use("/reports", reportsRoute);
 
-const handler = serverless(app);
+const _handler = serverless(app);
 
-module.exports.handler = async (event, context) => {
+export const handler = async (event, context) => {
   context.callbackWaitsForEmptyEventLoop = false; // caches mongoose connections inbetween requests
-  return await handler(event, context);
+  return await _handler(event, context);
 };
