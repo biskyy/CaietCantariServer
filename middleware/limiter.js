@@ -1,31 +1,38 @@
+import crypto from "crypto";
 import Client from "../models/clientModel.js";
-import bcrypt from "bcryptjs";
 
 const getIp = (req) => {
   const forwardedFor = req.headers["x-forwarded-for"];
   const realIp = req.headers["x-real-ip"];
 
   if (forwardedFor) return forwardedFor.split(",")[0].trim();
-
   if (realIp) return realIp.trim();
-
   return null;
+};
+
+const hashIp = (ip, secret) => {
+  return crypto.createHmac("sha256", secret).update(ip).digest("hex");
 };
 
 const rateLimitByIp = (limit = 1, window = 10000) => {
   return async (req, res, next) => {
     try {
-      // skip rate-limiting if we are in dev environment
+      // Skip rate-limiting in development
       if (process.env.NODE_ENV === "DEV") return next();
 
       const ip = getIp(req);
       const method = req.method;
       const route = req.baseUrl;
-      //console.log(method, route);
 
-      if (!ip) return res.status(400).json({ message: "IP Adress not found" });
+      if (!ip) return res.status(400).json({ message: "IP Address not found" });
 
-      const hashedIp = await bcrypt.hash(ip, process.env.SALT);
+      const secret = process.env.RATE_LIMIT_SECRET;
+      if (!secret) {
+        console.error("RATE_LIMIT_SECRET is not set.");
+        return res.status(500).json({ message: "Server misconfiguration" });
+      }
+
+      const hashedIp = hashIp(ip, secret);
 
       let client = (await Client.findOne({ ip: hashedIp }).exec()) || {
         ip: hashedIp,
@@ -37,7 +44,7 @@ const rateLimitByIp = (limit = 1, window = 10000) => {
         expiresAt: 0,
       };
 
-      // reset the count if the tracker expired
+      // Reset the tracker if the window has expired
       if (tracker.expiresAt < Date.now()) {
         tracker.count = 0;
         tracker.expiresAt = Date.now() + window;
@@ -49,18 +56,15 @@ const rateLimitByIp = (limit = 1, window = 10000) => {
 
       if (tracker.count > limit) {
         return res.status(429).json({
-          message: "You have to wait a little bit inbetween requests.",
+          message: "You have to wait a little bit between requests.",
         });
       }
-
-      //console.log(hashedIp);
-      //console.log(client);
 
       await Client.findOneAndUpdate({ ip: hashedIp }, client, { upsert: true });
 
       return next();
     } catch (err) {
-      console.error("rate limit middleware error: ", err);
+      console.error("Rate limit middleware error: ", err);
       return res.status(500).json({ message: "Internal server error" });
     }
   };
