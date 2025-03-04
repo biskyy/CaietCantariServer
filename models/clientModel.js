@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const clientSchema = mongoose.Schema(
   {
-    ip: String,
+    identifier: String,
     //count: Number,
     //expiresAt: Date,
     trackers: {
