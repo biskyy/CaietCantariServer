@@ -2,15 +2,34 @@ import express from "express";
 const router = express.Router();
 
 import Joi from "joi";
-import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import rateLimitByIp from "../middleware/limiter.js";
+import { v4 as uuidv4 } from "uuid";
+import { rateLimitByJWT, rateLimitRoute } from "../middleware/limiter.js";
+
+const privateKey = process.env.PRIVATE_KEY;
 
 const adminUsername = process.env.ADMIN_USERNAME;
 const adminPassword = process.env.ADMIN_PASSWORD;
-const privateKey = process.env.PRIVATE_KEY;
 
-router.post("/", rateLimitByIp(3, 10000), async (req, res) => {
+router.get("/token", rateLimitRoute(5, 60000), async (req, res) => {
+  try {
+    const privateKey = process.env.PRIVATE_KEY;
+    if (!privateKey) {
+      throw new Error("PRIVATE_KEY not set up");
+    }
+
+    const token = jwt.sign({ uuid: uuidv4() }, privateKey, {
+      expiresIn: 60 * 60 * 1,
+    }); // 1 hour
+
+    return res.status(200).json({ token });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+});
+
+router.post("/login", rateLimitByJWT(3, 30000), async (req, res) => {
   try {
     await Joi.object({
       username: Joi.string().required(),
@@ -23,21 +42,21 @@ router.post("/", rateLimitByIp(3, 10000), async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    if (username !== adminUsername)
-      res.status(404).json({ message: "Incorrect username" });
-    else if (!bcrypt.compareSync(password, adminPassword))
-      res.status(404).json({ message: "Incorrect password" });
-    else {
-      const token = jwt.sign(
-        { username: adminUsername, password: adminPassword },
-        privateKey,
-      );
+    if (!privateKey) throw new Error("Auth Route: PRIVATE_KEY not set up");
 
-      res.status(200).json({ message: "Logged in", token });
-    }
-  } catch (error) {
-    console.log(error);
-    res.status(500).json({ message: error.message });
+    if (username !== adminUsername)
+      return res.status(401).json({ message: "Incorrect username" });
+
+    const isPasswordValid = await verifyPassword(password, adminPassword);
+    if (!isPasswordValid)
+      return res.status(401).json({ message: "Incorrect password" });
+
+    const token = jwt.sign({ username: adminUsername }, privateKey);
+
+    return res.status(200).json({ message: "Logged in", token });
+  } catch (err) {
+    console.log(err);
+    return res.status(500).json({ message: err.message });
   }
 });
 
