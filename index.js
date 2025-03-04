@@ -4,7 +4,6 @@ import express from "express";
 import serverless from "serverless-http";
 import cors from "cors";
 import mongoose from "mongoose";
-import compression from "compression";
 
 import songsRoute from "./routes/songsRoute.js";
 import authRoute from "./routes/authRoute.js";
@@ -39,13 +38,13 @@ app.use(express.json());
 app.use((err, req, res, next) => {
   if (err instanceof SyntaxError && err.status === 400 && "body" in err)
     return res.status(400).json({ status: 400, message: err.message });
-  next();
+  return next();
 });
+
 app.use(cors());
-app.use(compression()); // doesnt work
 
 app.use("/songs", songsRoute);
-app.use("/login", authRoute);
+app.use("/auth", authRoute);
 app.use("/reports", reportsRoute);
 
 const _handler = serverless(app);
