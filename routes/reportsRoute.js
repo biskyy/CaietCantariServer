@@ -3,19 +3,20 @@ const router = express.Router();
 
 import reportValidationSchema from "../validation/reportValidation.js";
 import authenticate from "../middleware/authenticate.js";
-import rateLimitByIp from "../middleware/limiter.js";
+import { rateLimitByJWT } from "../middleware/limiter.js";
 import Report from "../models/reportModel.js";
 
-router.get("/", rateLimitByIp, async (req, res) => {
+router.get("/", rateLimitByJWT(), async (req, res) => {
+  console.log("reached");
   try {
-    const reports = await Report.find({});
+    const reports = await Report.find({}).exec();
     res.status(200).json(reports);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 });
 
-router.post("/", rateLimitByIp(1, 20000), async (req, res) => {
+router.post("/", rateLimitByJWT(1, 20000), async (req, res) => {
   try {
     await reportValidationSchema.validateAsync(req.body);
   } catch (validationError) {
@@ -25,13 +26,13 @@ router.post("/", rateLimitByIp(1, 20000), async (req, res) => {
   try {
     const { songIndex, additionalDetails } = req.body;
     await Report.create({ songIndex, additionalDetails });
-    res.status(200).send("The report got uploaded successfully");
+    return res.status(200).send("The report got uploaded successfully");
   } catch (e) {
-    res.status(500).json({ message: e.message });
+    return res.status(500).json({ message: e.message });
   }
 });
 
-router.delete("/", authenticate, rateLimitByIp, async (req, res) => {
+router.delete("/", authenticate, async (req, res) => {
   try {
     const { _id } = req.body;
     await Report.deleteOne({ _id });
