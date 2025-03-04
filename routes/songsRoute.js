@@ -2,7 +2,7 @@ import express from "express";
 const router = express.Router();
 
 import authenticate from "../middleware/authenticate.js";
-import rateLimitByIp from "../middleware/limiter.js";
+import { rateLimitByJWT } from "../middleware/limiter.js";
 
 import songValidationSchema from "../validation/songValidation.js";
 import Song from "../models/songModel.js";
@@ -53,9 +53,10 @@ const formatSongContent = (songContent) => {
     .trim();
 };
 
-router.get("/", rateLimitByIp(2, 30000), async (req, res) => {
+router.get("/", rateLimitByJWT(2, 30000), async (req, res) => {
   try {
-    const { book_id, id } = req.body;
+    // req.body doesnt work with get requests in express.js
+    const { book_id, id } = req.query;
     if (book_id && id) {
       const song = await Song.findOne({ book_id, id }).exec();
       return res.status(200).json(song);
@@ -63,11 +64,11 @@ router.get("/", rateLimitByIp(2, 30000), async (req, res) => {
     const songs = await Song.find({});
     return res.status(200).json(songs);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ message: error });
   }
 });
 
-router.post("/", authenticate, rateLimitByIp, async (req, res) => {
+router.post("/", authenticate, async (req, res) => {
   // i think i should validate the req.body before
   try {
     await Song.create(req.body);
@@ -78,7 +79,7 @@ router.post("/", authenticate, rateLimitByIp, async (req, res) => {
   }
 });
 
-router.put("/", authenticate, rateLimitByIp, async (req, res) => {
+router.put("/", authenticate, async (req, res) => {
   try {
     await songValidationSchema.validateAsync(req.body);
   } catch (validationError) {
