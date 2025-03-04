@@ -3,6 +3,7 @@ const router = express.Router();
 
 import Joi from "joi";
 import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { rateLimitByJWT, rateLimitRoute } from "../middleware/limiter.js";
 
@@ -47,7 +48,8 @@ router.post("/login", rateLimitByJWT(3, 30000), async (req, res) => {
     if (username !== adminUsername)
       return res.status(401).json({ message: "Incorrect username" });
 
-    const isPasswordValid = await verifyPassword(password, adminPassword);
+    const isPasswordValid = await bcrypt.compare(password, adminPassword);
+
     if (!isPasswordValid)
       return res.status(401).json({ message: "Incorrect password" });
 
