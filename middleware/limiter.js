@@ -3,6 +3,8 @@ import jwt from "jsonwebtoken";
 import Client from "../models/clientModel.js";
 import Route from "../models/routeModel.js";
 
+const SECRET = process.env.RATE_LIMIT_SECRET;
+
 const getIp = (req) => {
   const forwardedFor = req.headers["x-forwarded-for"];
   const realIp = req.headers["x-real-ip"];
@@ -74,8 +76,7 @@ const rateLimitByIdentifier = async (
     throw new Error("Identifier not provided");
   }
 
-  const secret = process.env.RATE_LIMIT_SECRET;
-  if (!secret) {
+  if (!SECRET) {
     throw new Error("Rate limit secret not configured");
   }
 
@@ -117,7 +118,7 @@ const rateLimitByIp = (limit = 1, window = 10000) => {
       const method = req.method;
       const route = req.baseUrl;
 
-      const hashedIp = hashIdentifier(ip, secret);
+      const hashedIp = hashIdentifier(ip, SECRET);
 
       await rateLimitByIdentifier(hashedIp, method, route, limit, window);
 

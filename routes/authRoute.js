@@ -7,10 +7,10 @@ import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { rateLimitByJWT, rateLimitRoute } from "../middleware/limiter.js";
 
-const privateKey = process.env.PRIVATE_KEY;
+const PRIVATE_KEY = process.env.PRIVATE_KEY;
 
-const adminUsername = process.env.ADMIN_USERNAME;
-const adminPassword = process.env.ADMIN_PASSWORD;
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME;
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
 router.get("/token", rateLimitRoute(5, 60000), async (req, res) => {
   try {
@@ -43,17 +43,17 @@ router.post("/login", rateLimitByJWT(3, 30000), async (req, res) => {
   try {
     const { username, password } = req.body;
 
-    if (!privateKey) throw new Error("Auth Route: PRIVATE_KEY not set up");
+    if (!PRIVATE_KEY) throw new Error("Auth Route: PRIVATE_KEY not set up");
 
-    if (username !== adminUsername)
+    if (username !== ADMIN_USERNAME)
       return res.status(401).json({ message: "Incorrect username" });
 
-    const isPasswordValid = await bcrypt.compare(password, adminPassword);
+    const isPasswordValid = await bcrypt.compare(password, ADMIN_PASSWORD);
 
     if (!isPasswordValid)
       return res.status(401).json({ message: "Incorrect password" });
 
-    const token = jwt.sign({ username: adminUsername }, privateKey);
+    const token = jwt.sign({ username: ADMIN_USERNAME }, PRIVATE_KEY);
 
     return res.status(200).json({ message: "Logged in", token });
   } catch (err) {
