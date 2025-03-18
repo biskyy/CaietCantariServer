@@ -1,5 +1,6 @@
 import "dotenv/config.js";
 import express from "express";
+import helmet from "helmet";
 import serverless from "serverless-http";
 import cors from "cors";
 import mongoose from "mongoose";
@@ -32,6 +33,9 @@ app.use(async (req, res, next) => {
   return next();
 });
 
+app.use(helmet());
+app.disable("x-powered-by");
+
 app.use(express.json());
 // catch bad json syntax
 app.use((err, req, res, next) => {
@@ -45,6 +49,11 @@ app.use(cors());
 app.use("/songs", songsRoute);
 app.use("/auth", authRoute);
 app.use("/reports", reportsRoute);
+
+// custom 404
+app.use((req, res, next) => {
+  return res.status(404).send("Invalid request or path");
+});
 
 const _handler = serverless(app);
 
