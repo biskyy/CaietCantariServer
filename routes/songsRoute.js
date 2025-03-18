@@ -110,4 +110,18 @@ router.put("/", authenticate, async (req, res) => {
   }
 });
 
+router.patch("/sort", authenticate, async (req, res) => {
+  try {
+    await sortDatabase();
+    return res
+      .json({ message: "The songs got sorted successfully" })
+      .status(200);
+  } catch (err) {
+    console.error(err);
+    return res
+      .json({ message: "Internal server error while sorting songs" })
+      .status(500);
+  }
+});
+
 export default router;
