@@ -109,6 +109,9 @@ const rateLimitByIdentifier = async (
   });
 };
 
+// console.log(req.apiGateway.event.requestContext.identity.sourceIp);
+// this is one way to get the api of the client through api gateway.
+// x-real-ip or x-forwarded-for wont work with api gateway/lambda
 const rateLimitByIp = (limit = 1, window = 10000) => {
   return async (req, res, next) => {
     try {
