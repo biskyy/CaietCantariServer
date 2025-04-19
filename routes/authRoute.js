@@ -37,7 +37,9 @@ router.post("/login", rateLimitByJWT(3, 30000), async (req, res) => {
       password: Joi.string().required(),
     }).validateAsync(req.body);
   } catch (error) {
-    return res.status(400).json({ message: error.message });
+    return res
+      .status(400)
+      .json({ message: "Username-ul sau parola sunt incorecte" });
   }
 
   try {
@@ -46,12 +48,16 @@ router.post("/login", rateLimitByJWT(3, 30000), async (req, res) => {
     if (!PRIVATE_KEY) throw new Error("Auth Route: PRIVATE_KEY not set up");
 
     if (username !== ADMIN_USERNAME)
-      return res.status(401).json({ message: "Incorrect username" });
+      return res
+        .status(401)
+        .json({ message: "Username-ul sau parola sunt incorecte" });
 
     const isPasswordValid = await bcrypt.compare(password, ADMIN_PASSWORD);
 
     if (!isPasswordValid)
-      return res.status(401).json({ message: "Incorrect password" });
+      return res
+        .status(401)
+        .json({ message: "Username-ul sau parola sunt incorecte" });
 
     const token = jwt.sign({ username: ADMIN_USERNAME }, PRIVATE_KEY);
 
