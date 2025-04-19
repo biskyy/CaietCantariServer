@@ -55,7 +55,7 @@ export const rateLimitRoute = (limit = 5, window = 30000) => {
     } catch (err) {
       if (err.message === "Rate limit exceeded") {
         return res.status(429).json({
-          message: "You have to wait a little bit between requests.",
+          message: "Trimiți prea multe cereri!",
         });
       }
 
@@ -181,7 +181,7 @@ export const rateLimitByJWT = (limit, window) => {
     } catch (err) {
       if (err.message === "Rate limit exceeded") {
         return res.status(429).json({
-          message: "You have to wait a little bit between requests.",
+          message: "Trimiți prea multe cereri!",
         });
       }
 
