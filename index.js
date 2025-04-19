@@ -52,7 +52,7 @@ app.use("/reports", reportsRoute);
 
 // custom 404
 app.use((req, res, next) => {
-  return res.status(404).send("Invalid request or path");
+  return res.status(404).json({ message: "Invalid request or path" });
 });
 
 const _handler = serverless(app);
