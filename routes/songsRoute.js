@@ -53,7 +53,7 @@ const formatSongContent = (songContent) => {
     .trim();
 };
 
-router.get("/", rateLimitByJWT(2, 30000), async (req, res) => {
+router.get("/", rateLimitByJWT(2, 60 * 1000), async (req, res) => {
   try {
     // req.body doesnt work with get requests in express.js
     const { book_id, id } = req.query;
